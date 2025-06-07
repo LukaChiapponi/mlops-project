@@ -2,26 +2,24 @@ import os
 import argparse
 import logging
 from glob import glob
-from PIL import Image
 
 import numpy as np
 import pandas as pd
-import matplotlib as mpl
-import matplotlib.pyplot as plt
-import seaborn as sns
+from scipy.stats import skew
+from sklearn.preprocessing import StandardScaler
+import joblib
 
 def main():
     """Main function of the script."""
     parser = argparse.ArgumentParser()
-    parser.add_argument('--train', type=str, required=True)
-    parser.add_argument('--test', type=str, required=True)
-    parser.add_argument('--output_dir', type=str, required=True)
+    parser.add_argument('--data', type=str, required=True)
+    parser.add_argument('--output_data', type=str, required=True)
     args = parser.parse_args()
 
     print(" ".join(f"{k}={v}" for k, v in vars(args).items()))
 
-    # Load data
-    df_train = pd.read_csv(args.train)
+    # Load train data
+    df_train = pd.read_csv(args.data)
 
     # Drop specified columns
     df_train.drop(['B', 'RAD'], axis=1, inplace=True)
@@ -40,9 +38,9 @@ def main():
     df_train[num_cols] = scaler.fit_transform(df_train[num_cols])
 
     # Save outputs
-    os.makedirs(args.output_dir, exist_ok=True)
-    df_train.to_csv(os.path.join(args.output_dir, "train_cleaned.csv"), index=False)
-    joblib.dump(scaler, os.path.join(args.output_dir, "scaler.pkl"))
+    os.makedirs(args.output_data, exist_ok=True)
+    df_train.to_csv(os.path.join(args.output_data, "train_cleaned.csv"), index=False)
+    joblib.dump(scaler, os.path.join(args.output_data, "scaler.pkl"))
 
 if __name__ == "__main__":
     main()

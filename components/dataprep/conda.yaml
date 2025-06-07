@@ -1,4 +1,4 @@
-name: aml-Pillow
+name: aml-dataprep
 channels:
   - conda-forge
 dependencies:
