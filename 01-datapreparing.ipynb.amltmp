@@ -10,25 +10,27 @@
       "execution_count": 1,
       "metadata": {
         "gather": {
-          "logged": 1749302027663
+          "logged": 1749397374802
         }
       }
     },
     {
       "cell_type": "code",
       "source": [
-        "import os\n",
-        "workspace_name = os.environ.get('WORKSPACE', 'mlops-project-ml')\n",
-        "subscription_id = os.environ.get('SUBSCRIPTION_ID', '88f330cf-5648-423b-aaa3-bc9705075a61')\n",
-        "resource_group = os.environ.get('RESOURCE_GROUP', 'mlops-project')"
+        "import yaml\n",
+        "\n",
+        "# Load config from YAML file\n",
+        "with open(\"config.yaml\", \"r\") as f:\n",
+        "    config = yaml.safe_load(f)\n",
+        "\n",
+        "# Extract individual variables\n",
+        "subscription_id = config[\"subscription_id\"]\n",
+        "resource_group = config[\"resource_group\"]\n",
+        "workspace_name = config[\"workspace_name\"]"
       ],
       "outputs": [],
-      "execution_count": 2,
-      "metadata": {
-        "gather": {
-          "logged": 1749302027740
-        }
-      }
+      "execution_count": null,
+      "metadata": {}
     },
     {
       "cell_type": "code",
@@ -39,7 +41,7 @@
       "execution_count": 3,
       "metadata": {
         "gather": {
-          "logged": 1749302027804
+          "logged": 1749397374959
         }
       }
     },
@@ -54,7 +56,7 @@
       "execution_count": 4,
       "metadata": {
         "gather": {
-          "logged": 1749302031212
+          "logged": 1749397378186
         }
       }
     },
@@ -64,13 +66,26 @@
         "# Compute Instances need to have a unique name across the region.\n",
         "from azure.ai.ml.entities import ComputeInstance, AmlCompute\n",
         "\n",
-        "ci_basic_name = \"cpu-luka-auto\" # I add the suffix Auto, because we are automatically creating this instance.\n",
+        "ci_basic_name = \"project-ml-compute\" # I add the suffix Auto, because we are automatically creating this instance.\n",
         "ci_basic = ComputeInstance(name=ci_basic_name, size=\"STANDARD_DS3_v2\")\n",
         "ml_client.begin_create_or_update(ci_basic).result()"
       ],
-      "outputs": [],
-      "execution_count": null,
-      "metadata": {}
+      "outputs": [
+        {
+          "output_type": "execute_result",
+          "execution_count": 5,
+          "data": {
+            "text/plain": "ComputeInstance({'state': 'Running', 'last_operation': {'operation_name': 'Start', 'operation_time': '2025-06-08T15:04:17.820Z', 'operation_status': 'Succeeded', 'operation_trigger': 'User'}, 'os_image_metadata': <azure.ai.ml.entities._compute._image_metadata.ImageMetadata object at 0x7b139f5a38e0>, 'services': [{'display_name': 'Jupyter', 'endpoint_uri': 'https://project-ml-compute.westeurope.instances.azureml.ms/tree/'}, {'display_name': 'Jupyter Lab', 'endpoint_uri': 'https://project-ml-compute.westeurope.instances.azureml.ms/lab'}], 'type': 'computeinstance', 'created_on': '2025-06-06T12:05:35.957256+0000', 'provisioning_state': 'Succeeded', 'provisioning_errors': None, 'name': 'project-ml-compute', 'description': None, 'tags': None, 'properties': {}, 'print_as_yaml': False, 'id': '/subscriptions/88f330cf-5648-423b-aaa3-bc9705075a61/resourceGroups/mlops-project/providers/Microsoft.MachineLearningServices/workspaces/mlops-project-ml/computes/project-ml-compute', 'Resource__source_path': '', 'base_path': '/mnt/batch/tasks/shared/LS_root/mounts/clusters/project-ml-compute/code/Users/luka.chiapponi/mlops-project', 'creation_context': None, 'serialize': <msrest.serialization.Serializer object at 0x7b139f5a0790>, 'resource_id': None, 'location': 'westeurope', 'size': 'Standard_DS3_v2', 'ssh_public_access_enabled': False, 'create_on_behalf_of': None, 'network_settings': <azure.ai.ml.entities._compute.compute.NetworkSettings object at 0x7b139f5a23b0>, 'ssh_settings': <azure.ai.ml.entities._compute.compute_instance.ComputeInstanceSshSettings object at 0x7b139f5a2b90>, 'schedules': None, 'identity': None, 'idle_time_before_shutdown': 'PT60M', 'idle_time_before_shutdown_minutes': 60, 'setup_scripts': None, 'enable_node_public_ip': True, 'enable_sso': True, 'enable_root_access': True, 'release_quota_on_stop': False, 'enable_os_patching': False, 'custom_applications': None, 'subnet': None})"
+          },
+          "metadata": {}
+        }
+      ],
+      "execution_count": 5,
+      "metadata": {
+        "gather": {
+          "logged": 1749397409994
+        }
+      }
     },
     {
       "cell_type": "code",
@@ -98,10 +113,10 @@
         "    f.write(conda_content.strip())\n"
       ],
       "outputs": [],
-      "execution_count": 5,
+      "execution_count": 6,
       "metadata": {
         "gather": {
-          "logged": 1749302036717
+          "logged": 1749397410077
         }
       }
     },
@@ -133,10 +148,10 @@
           "text": "Environment with name aml-dataprep is registered to workspace, the environment version is 1\n"
         }
       ],
-      "execution_count": 6,
+      "execution_count": 7,
       "metadata": {
         "gather": {
-          "logged": 1749302097388
+          "logged": 1749397415133
         }
       }
     },
@@ -176,18 +191,18 @@
         {
           "output_type": "stream",
           "name": "stderr",
-          "text": "\rUploading code (0.0 MBs):   0%|          | 0/2669 [00:00<?, ?it/s]\rUploading code (0.0 MBs): 100%|██████████| 2669/2669 [00:00<00:00, 97818.10it/s]\n\n\n"
+          "text": "\r\u001b[32mUploading code (0.0 MBs):   0%|          | 0/1687 [00:00<?, ?it/s]\r\u001b[32mUploading code (0.0 MBs): 100%|██████████| 1687/1687 [00:00<00:00, 67312.20it/s]\n\u001b[39m\n\n"
         },
         {
           "output_type": "stream",
           "name": "stdout",
-          "text": "Component dataprep with Version 2025-06-07-14-26-18-4958297 is registered\n"
+          "text": "Component dataprep with Version 2025-06-08-15-43-40-1909673 is registered\n"
         }
       ],
-      "execution_count": 46,
+      "execution_count": 8,
       "metadata": {
         "gather": {
-          "logged": 1749306377555
+          "logged": 1749397418286
         }
       }
     },
@@ -235,10 +250,10 @@
         "    }\n"
       ],
       "outputs": [],
-      "execution_count": 60,
+      "execution_count": 9,
       "metadata": {
         "gather": {
-          "logged": 1749308251685
+          "logged": 1749397418692
         }
       }
     },
@@ -254,9 +269,9 @@
         "# Connect to ML workspace\n",
         "ml_client = MLClient(\n",
         "    DefaultAzureCredential(),\n",
-        "    subscription_id=\"88f330cf-5648-423b-aaa3-bc9705075a61\",\n",
-        "    resource_group_name=\"mlops-project\",\n",
-        "    workspace_name=\"mlops-project-ml\"\n",
+        "    subscription_id=subscription_id,\n",
+        "    resource_group_name=resource_group,\n",
+        "    workspace_name=workspace_name\n",
         ")\n",
         "\n",
         "# Submit the pipeline\n",
@@ -272,21 +287,21 @@
         {
           "output_type": "stream",
           "name": "stderr",
-          "text": "Overriding of current TracerProvider is not allowed\nOverriding of current LoggerProvider is not allowed\nOverriding of current MeterProvider is not allowed\nAttempting to instrument while already instrumented\nAttempting to instrument while already instrumented\nAttempting to instrument while already instrumented\nAttempting to instrument while already instrumented\nAttempting to instrument while already instrumented\npathOnCompute is not a known attribute of class <class 'azure.ai.ml._restclient.v2023_04_01_preview.models._models_py3.UriFolderJobOutput'> and will be ignored\n"
+          "text": "Overriding of current TracerProvider is not allowed\nOverriding of current LoggerProvider is not allowed\nOverriding of current MeterProvider is not allowed\nAttempting to instrument while already instrumented\nAttempting to instrument while already instrumented\nAttempting to instrument while already instrumented\nAttempting to instrument while already instrumented\nAttempting to instrument while already instrumented\nClass AutoDeleteSettingSchema: This is an experimental class, and may change at any time. Please see https://aka.ms/azuremlexperimental for more information.\nClass AutoDeleteConditionSchema: This is an experimental class, and may change at any time. Please see https://aka.ms/azuremlexperimental for more information.\nClass BaseAutoDeleteSettingSchema: This is an experimental class, and may change at any time. Please see https://aka.ms/azuremlexperimental for more information.\nClass IntellectualPropertySchema: This is an experimental class, and may change at any time. Please see https://aka.ms/azuremlexperimental for more information.\nClass ProtectionLevelSchema: This is an experimental class, and may change at any time. Please see https://aka.ms/azuremlexperimental for more information.\nClass BaseIntellectualPropertySchema: This is an experimental class, and may change at any time. Please see https://aka.ms/azuremlexperimental for more information.\npathOnCompute is not a known attribute of class <class 'azure.ai.ml._restclient.v2023_04_01_preview.models._models_py3.UriFolderJobOutput'> and will be ignored\n"
         },
         {
           "output_type": "execute_result",
-          "execution_count": 61,
+          "execution_count": 10,
           "data": {
             "text/plain": "False"
           },
           "metadata": {}
         }
       ],
-      "execution_count": 61,
+      "execution_count": 10,
       "metadata": {
         "gather": {
-          "logged": 1749308255876
+          "logged": 1749397423280
         }
       }
     }
