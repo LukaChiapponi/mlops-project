@@ -1,0 +1,67 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: housing-api
+  labels:
+    app: housing-api
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: housing-api
+  template:
+    metadata:
+      labels:
+        app: housing-api
+    spec:
+      containers:
+      - name: housing-api
+        image: housing-api:latest
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 8000
+        env:
+        - name: MODEL_PATH
+          value: "/app/model.pkl"
+        volumeMounts:
+        - name: model-volume
+          mountPath: /app/model.pkl
+          subPath: model.pkl
+          readOnly: true
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "250m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8000
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8000
+          initialDelaySeconds: 5
+          periodSeconds: 5
+      volumes:
+      - name: model-volume
+        configMap:
+          name: model-config
+          # Alternative: use persistent volume or secret for model file
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: housing-api-service
+spec:
+  selector:
+    app: housing-api
+  ports:
+  - protocol: TCP
+    port: 8000
+    targetPort: 8000
+  type: ClusterIP

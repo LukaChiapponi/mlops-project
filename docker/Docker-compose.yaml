@@ -1,0 +1,53 @@
+version: '3.8'
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile.api  # Changed from Dockerfile.backend
+    container_name: housing-api
+    environment:
+      - MODEL_PATH=/app/trained_model.h5
+    volumes:
+      - ./trained_model.h5:/app/trained_model.h5:ro
+    ports:
+      - "8001:8000"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - housing-network
+
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend  # Changed from Dockerfile.frontend
+    container_name: housing-frontend
+    ports:
+      - "3001:3000"
+    depends_on:
+      - api
+    networks:
+      - housing-network
+
+  nginx:
+    build:
+      context: .
+      dockerfile: Dockerfile.nginx  # Changed from Dockerfile.nginx
+    container_name: housing-nginx
+    ports:
+      - "8080:80"
+    depends_on:
+      - api
+      - frontend
+    networks:
+      - housing-network
+
+networks:
+  housing-network:
+    driver: bridge
+
+volumes:
+  model-data:
