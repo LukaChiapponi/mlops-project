@@ -13,7 +13,7 @@ def main():
     """Main function of the script."""
     parser = argparse.ArgumentParser()
     parser.add_argument('--data', type=str, required=True)
-    parser.add_argument('--output_data', type=str, required=True)
+    parser.add_argument('--data_cleaned', type=str, required=True)
     args = parser.parse_args()
 
     print(" ".join(f"{k}={v}" for k, v in vars(args).items()))
@@ -38,9 +38,9 @@ def main():
     df_train[num_cols] = scaler.fit_transform(df_train[num_cols])
 
     # Save outputs
-    os.makedirs(args.output_data, exist_ok=True)
-    df_train.to_csv(os.path.join(args.output_data, "train_cleaned.csv"), index=False)
-    joblib.dump(scaler, os.path.join(args.output_data, "scaler.pkl"))
+    os.makedirs(args.data_cleaned, exist_ok=True)
+    df_train.to_csv(os.path.join(args.data_cleaned, "train_cleaned.csv"), index=False)
+    joblib.dump(scaler, os.path.join(args.data_cleaned, "scaler.pkl"))
 
 if __name__ == "__main__":
     main()

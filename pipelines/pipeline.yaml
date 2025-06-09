@@ -1,0 +1,62 @@
+$schema: https://azuremlschemas.azureedge.net/latest/pipelineJob.schema.json
+
+type: pipeline
+#name: boston-housing-regression
+display_name: Boston Housing Regression
+experiment_name: regression
+
+inputs:
+  raw_data:
+    type: uri_file
+    path: azureml:boston_housing_prices_csv@latest
+  epochs: 100
+  noise_level: 0.01
+
+outputs:
+  model_output:
+    type: uri_folder
+    mode: rw_mount
+  registration_details_folder:
+    mode: rw_mount
+  data_cleaned:
+    type: uri_folder
+    mode: rw_mount
+    path: azureml://datastores/workspaceblobstore/paths/data_cleaned/
+  
+settings:
+  default_compute: azureml:project-ml-compute
+
+jobs:
+  preprocess:
+    type: command
+    component: ../components/dataprep/dataprep.yaml
+    compute: azureml:project-ml-compute
+    inputs:
+      data: ${{parent.inputs.raw_data}}
+    outputs:
+      data_cleaned:
+        mode: rw_mount
+        type: uri_folder
+        path: azureml://datastores/workspaceblobstore/paths/data_cleaned/
+
+  train:
+    type: command
+    component: ../components/training/training.yaml
+    compute: azureml:project-ml-compute
+    inputs:
+      training_data: ${{parent.jobs.preprocess.outputs.data_cleaned}}
+      epochs: ${{parent.inputs.epochs}}
+      noise_level: ${{parent.inputs.noise_level}}
+    outputs:
+      model_output: ${{parent.outputs.model_output}}
+
+  register:
+    type: command
+    component: azureml://registries/azureml/components/register_model/versions/0.0.9
+    inputs:
+      model_name: boston-housing-model
+      model_type: custom_model
+      model_path: ${{parent.jobs.train.outputs.model_output}}
+    outputs:
+      registration_details_folder:
+        mode: rw_mount

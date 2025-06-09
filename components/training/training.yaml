@@ -1,0 +1,28 @@
+$schema: https://azuremlschemas.azureedge.net/latest/commandComponent.schema.json
+version: 0.1.0
+type: command
+name: training_component
+display_name: Training an AI model
+description: Trains an AI model by inputting a lot of training and testing data.
+
+code: ./code
+environment: azureml:aml-training:0.1.0
+command: >
+  python train.py --training_data ${{inputs.training_data}} --epochs ${{inputs.epochs}} --noise_level ${{inputs.noise_level}} --output_folder ${{outputs.model_output}}
+
+inputs:
+  training_data:
+    type: uri_folder
+  epochs:
+    type: number
+    default: 100
+  noise_level:
+    type: number
+    default: 0.01
+outputs:
+  model_output:
+    type: uri_file
+    mode: rw_mount
+
+resources:
+  instance_count: 1

@@ -1,0 +1,24 @@
+$schema: https://azuremlschemas.azureedge.net/latest/commandComponent.schema.json
+
+name: data_prep_component
+version: 0.2.0
+display_name: Data Preparation Component
+is_deterministic: true
+type: command
+description: This component prepares the data for training by reading a CSV file, augmenting it with noise, and saving the processed data.
+
+environment: azureml:aml-dataprep:0.1.0
+resources:
+  instance_count: 1
+  
+code: ./code
+command: >
+  python dataprep.py --data ${{inputs.data}} --data_cleaned ${{outputs.data_cleaned}}
+
+inputs:
+  data:
+    type: uri_file
+outputs:
+  data_cleaned:
+    type: uri_folder
+    mode: rw_mount

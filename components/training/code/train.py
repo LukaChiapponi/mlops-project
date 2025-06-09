@@ -58,8 +58,13 @@ def main():
     # Use the epochs parameter from Azure ML
     fit1 = model.fit(X, y, epochs=args.epochs, validation_split=0.2, batch_size=16, callbacks=[early_stopping])
     
-    # Save model to the specified output folder
+    # Save model to output folder
     model.save(args.output_folder)
+
+    # Save scaler to output folder
+    import joblib
+    scaler_path = os.path.join(args.output_folder, "scaler.pkl")
+    joblib.dump(args.output_folder, scaler_path)
     
 if __name__ == "__main__":
     main()
