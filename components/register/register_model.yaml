@@ -5,11 +5,15 @@ type: command
 inputs:
   model_path:
     type: uri_folder
+
 outputs:
   registration_details_folder:
     type: uri_folder
+
 command: >-
-  python register.py --model_path ${{inputs.model_path}} --model_name boston-housing-model
+  python register.py 
+  --model_path ${{inputs.model_path}} 
+  --model_name boston-housing-model
 
 environment: azureml:register-env:0.1.0
 code: ./code

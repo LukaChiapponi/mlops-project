@@ -10,13 +10,9 @@ def main():
     parser.add_argument("--model_name", type=str, default="boston-housing-model")
     args = parser.parse_args()
 
-    ml_client = MLClient(
-        DefaultAzureCredential(),
-        os.environ["AZUREML_ARM_SUBSCRIPTION"],
-        os.environ["AZUREML_ARM_RESOURCEGROUP"],
-        os.environ["AZUREML_ARM_WORKSPACE_NAME"]
-    )
-    
+    ml_client = MLClient.from_config(credential=DefaultAzureCredential())
+
+
     model = Model(
         path=args.model_path,
         name=args.model_name,

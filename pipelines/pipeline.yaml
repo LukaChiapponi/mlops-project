@@ -57,5 +57,5 @@ jobs:
     inputs:
       model_path: ${{parent.jobs.train.outputs.model_output}}
     outputs:
-      registration_details_folder:
-        mode: rw_mount
+      registration_details_folder: ${{parent.outputs.registration_details_folder}}
+
