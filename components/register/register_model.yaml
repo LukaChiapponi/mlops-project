@@ -11,5 +11,5 @@ outputs:
 command: >-
   python register.py --model_path ${{inputs.model_path}} --model_name boston-housing-model
 
-environment: azureml://registries/azureml/environments/AzureML-sklearn-1.0-ubuntu20.04-py38-cpu/versions/1
+environment: azureml:register-env:0.1.0
 code: ./code

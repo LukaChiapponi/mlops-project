@@ -1,0 +1,8 @@
+$schema: https://azuremlschemas.azureedge.net/latest/environment.schema.json
+description: Custom environment for data preparation tasks in Azure Machine Learning
+name: register-env
+version: 0.1.0
+
+conda_file: ../components/register/conda.yaml
+image: mcr.microsoft.com/azureml/openmpi4.1.0-ubuntu20.04:latest
+os_type: linux
