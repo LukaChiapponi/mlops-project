@@ -27,7 +27,7 @@ jobs:
 
       - name: Create config.json
         run: |
-          mkdir -p components/register/.azureml
+          mkdir -p .azureml
           echo '{
             "subscription_id": "${{ secrets.AZURE_SUBSCRIPTION_ID }}",
             "resource_group": "${{ secrets.AZURE_RESOURCE_GROUP }}",
@@ -37,7 +37,7 @@ jobs:
               "tenant_id": "${{ secrets.AZURE_TENANT_ID }}",
               "client_secret": "${{ secrets.AZURE_CLIENT_SECRET }}"
             }
-          }' > components/register/code/.azureml/config.json
+          }' > .azureml/config.json
 
 
       - name: Copy config.json into component code directory
