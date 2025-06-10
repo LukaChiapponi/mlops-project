@@ -1,10 +1,6 @@
 name: Retrain Model in Azure ML
 
-on:
-  push:
-    branches:
-      - main
-  workflow_dispatch:
+on: [push]
 
 jobs:
   retrain_model:
