@@ -37,6 +37,8 @@ jobs:
       - name: Trigger deployment
         if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/working-no-api-deploy'
         run: |
+          minikube start
+          minikube addons enable ingress
           cd docker
           chmod +x build-and-deploy.sh
           ./build-and-deploy.sh    
