@@ -23,7 +23,6 @@ jobs:
       - name: Register/Update compute
         run: |
           az ml compute create --file environment/compute.yaml --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} --workspace-name ${{ secrets.AZURE_WORKSPACE }} || true
-          az ml compute start --name project-ml-compute --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} --workspace-name ${{ secrets.AZURE_WORKSPACE }} || true
 
       - name: Register/Update components
         run: |
