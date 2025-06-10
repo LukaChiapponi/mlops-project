@@ -14,16 +14,6 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.8'
-
-      - name: Install Azure CLI and ML extension
-        run: |
-          pip install azure-cli
-          az extension add -n ml -y
-
       - name: Azure Login
         uses: azure/login@v2
         with:
