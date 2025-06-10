@@ -27,12 +27,18 @@ jobs:
 
       - name: Create config.json
         run: |
-          mkdir -p .azureml
+          mkdir -p components/register/.azureml
           echo '{
             "subscription_id": "${{ secrets.AZURE_SUBSCRIPTION_ID }}",
             "resource_group": "${{ secrets.AZURE_RESOURCE_GROUP }}",
-            "workspace_name": "${{ secrets.AZURE_WORKSPACE }}"
-          }' > .azureml/config.json
+            "workspace_name": "${{ secrets.AZURE_WORKSPACE_NAME }}",
+            "credential": {
+              "client_id": "${{ secrets.AZURE_CLIENT_ID }}",
+              "tenant_id": "${{ secrets.AZURE_TENANT_ID }}",
+              "client_secret": "${{ secrets.AZURE_CLIENT_SECRET }}"
+            }
+          }' > components/register/.azureml/config.json
+
 
       - name: Copy config.json into component code directory
         run: |
