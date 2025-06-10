@@ -29,6 +29,17 @@ jobs:
           az ml component create --file components/dataprep/dataprep.yaml --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} --workspace-name ${{ secrets.AZURE_WORKSPACE }}
           az ml component create --file components/training/training.yaml --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} --workspace-name ${{ secrets.AZURE_WORKSPACE }}
           az ml component create --file pipelines/register_model.yaml --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} --workspace-name ${{ secrets.AZURE_WORKSPACE }}
+      
       - name: Submit pipeline job
+        id: submit_job
         run: |
-          az ml job create --file pipelines/pipeline.yaml --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} --workspace-name ${{ secrets.AZURE_WORKSPACE }}
+          JOB_ID=$(az ml job create --file pipelines/pipeline.yaml --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} --workspace-name ${{ secrets.AZURE_WORKSPACE }} --query name -o tsv)
+          echo "job_id=$JOB_ID" >> $GITHUB_OUTPUT
+
+      - name: Wait for pipeline job to finish
+        run: |
+          az ml job wait --name ${{ steps.submit_job.outputs.job_id }} --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} --workspace-name ${{ secrets.AZURE_WORKSPACE }}
+
+      - name: Shut down compute cluster
+        run: |
+          az ml compute update --name project-ml-compute --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} --workspace-name ${{ secrets.AZURE_WORKSPACE }} --min-instances 0
