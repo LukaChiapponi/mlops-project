@@ -59,6 +59,17 @@ kubectl apply -f k8s-api-deployment.yaml -n $NAMESPACE
 kubectl apply -f k8s-frontend-deployment.yaml -n $NAMESPACE
 kubectl apply -f k8s-nginx-deployment.yaml -n $NAMESPACE
 
+# Add automatic rollout restart for updated deployments
+echo "🔄 Rolling out updates..."
+kubectl rollout restart deployment/housing-api -n $NAMESPACE
+kubectl rollout restart deployment/housing-frontend -n $NAMESPACE  
+kubectl rollout restart deployment/housing-nginx -n $NAMESPACE
+
+# Wait for rollout to complete
+kubectl rollout status deployment/housing-api -n $NAMESPACE --timeout=300s
+kubectl rollout status deployment/housing-frontend -n $NAMESPACE --timeout=300s
+kubectl rollout status deployment/housing-nginx -n $NAMESPACE --timeout=300s
+
 # Wait for deployments to be ready
 echo "⏳ Waiting for deployments to be ready..."
 kubectl wait --for=condition=available --timeout=300s deployment/housing-api -n $NAMESPACE

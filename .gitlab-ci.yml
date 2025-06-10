@@ -1,5 +1,8 @@
 stages:
   - retrain
+  - build
+  - test
+  - deploy
 
 retrain_model:
   stage: retrain
@@ -28,3 +31,31 @@ retrain_model:
 
   only:
     - main  # Or your default branch
+
+variables:
+  REGISTRY: "registry.gitlab.com/luka.chiapponi/mlops-project"
+  NAMESPACE: "mlops"
+
+build-images:
+  stage: build
+  script:
+    - docker build -t $REGISTRY/housing-api:$CI_COMMIT_SHA ./api
+    - docker build -t $REGISTRY/housing-frontend:$CI_COMMIT_SHA ./frontend
+    - docker build -t $REGISTRY/housing-nginx:$CI_COMMIT_SHA ./nginx
+    - docker push $REGISTRY/housing-api:$CI_COMMIT_SHA
+    - docker push $REGISTRY/housing-frontend:$CI_COMMIT_SHA
+    - docker push $REGISTRY/housing-nginx:$CI_COMMIT_SHA
+  only:
+    - main
+
+deploy-to-k8s:
+  stage: deploy
+  script:
+    - cd docker
+    - export TAG=$CI_COMMIT_SHA
+    - export REGISTRY=$REGISTRY
+    - chmod +x build-and-deploy.sh
+    - ./build-and-deploy.sh
+  only:
+    - main
+  when: manual
