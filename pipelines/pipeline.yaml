@@ -52,10 +52,9 @@ jobs:
 
   register:
     type: command
-    component: azureml://registries/azureml/components/register_model/versions/0.0.9
+    component: ../pipelines/register_model.yaml
+    compute: azureml:project-ml-compute
     inputs:
-      model_name: boston-housing-model
-      model_type: custom_model
       model_path: ${{parent.jobs.train.outputs.model_output}}
     outputs:
       registration_details_folder:
