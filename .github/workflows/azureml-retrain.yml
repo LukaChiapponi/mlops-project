@@ -34,12 +34,8 @@ jobs:
         run: |
           az ml job create --file pipelines/pipeline.yaml --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} --workspace-name ${{ secrets.AZURE_WORKSPACE }}
 
-      - name: Submit pipeline job
-        run: |
-          az ml job create --file pipelines/pipeline.yaml --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} --workspace-name ${{ secrets.AZURE_WORKSPACE }}
-
       - name: Trigger deployment
-        if: github.ref == 'refs/heads/main'
+        if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/working-no-api-deploy'
         run: |
           cd docker
           chmod +x build-and-deploy.sh
