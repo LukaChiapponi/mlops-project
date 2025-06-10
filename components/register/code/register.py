@@ -2,7 +2,8 @@ import argparse
 import os
 from azure.ai.ml import MLClient
 from azure.ai.ml.entities import Model
-from azure.identity import DefaultAzureCredential
+from azure.identity import ClientSecretCredential
+import json
 
 def main():
     parser = argparse.ArgumentParser()
@@ -10,9 +11,20 @@ def main():
     parser.add_argument("--model_name", type=str, default="boston-housing-model")
     args = parser.parse_args()
 
-    ml_client = MLClient.from_config(
-        credential=DefaultAzureCredential(),
-        path="./.azureml/config.json"
+    with open(".azureml/config.json") as f:
+        cfg = json.load(f)
+
+    cred = ClientSecretCredential(
+        client_id=cfg["credential"]["client_id"],
+        tenant_id=cfg["credential"]["tenant_id"],
+        client_secret=cfg["credential"]["client_secret"]
+    )
+
+    ml_client = MLClient(
+        credential=cred,
+        subscription_id=cfg["subscription_id"],
+        resource_group=cfg["resource_group"],
+        workspace_name=cfg["workspace_name"]
     )
 
     model = Model(
