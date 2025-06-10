@@ -52,7 +52,7 @@ jobs:
 
   register:
     type: command
-    component: ../pipelines/register_model.yaml
+    component: ../components/register/register_model.yaml
     compute: azureml:project-ml-compute
     inputs:
       model_path: ${{parent.jobs.train.outputs.model_output}}
