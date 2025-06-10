@@ -36,9 +36,9 @@ jobs:
 
       - name: Copy config.json into component code directory
         run: |
-          mkdir -p components/register/.azureml
-          cp .azureml/config.json components/register/.azureml/config.json
-          
+          mkdir -p components/register/code/.azureml
+          cp .azureml/config.json components/register/code/.azureml/config.json
+
       - name: Register/Update components
         run: |
           az ml component create --file components/dataprep/dataprep.yaml --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} --workspace-name ${{ secrets.AZURE_WORKSPACE }}
