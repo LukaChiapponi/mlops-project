@@ -31,13 +31,14 @@ jobs:
           echo '{
             "subscription_id": "${{ secrets.AZURE_SUBSCRIPTION_ID }}",
             "resource_group": "${{ secrets.AZURE_RESOURCE_GROUP }}",
-            "workspace_name": "${{ secrets.AZURE_WORKSPACE_NAME }}"
+            "workspace_name": "${{ secrets.AZURE_WORKSPACE }}"
           }' > .azureml/config.json
 
       - name: Copy config.json into component code directory
         run: |
+          mkdir -p components/register/.azureml
           cp .azureml/config.json components/register/.azureml/config.json
-
+          
       - name: Register/Update components
         run: |
           az ml component create --file components/dataprep/dataprep.yaml --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} --workspace-name ${{ secrets.AZURE_WORKSPACE }}
