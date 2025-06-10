@@ -25,6 +25,19 @@ jobs:
         run: |
           az ml compute create --file environment/compute.yaml --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} --workspace-name ${{ secrets.AZURE_WORKSPACE }} || true
 
+      - name: Create config.json
+        run: |
+          mkdir -p .azureml
+          echo '{
+            "subscription_id": "${{ secrets.AZURE_SUBSCRIPTION_ID }}",
+            "resource_group": "${{ secrets.AZURE_RESOURCE_GROUP }}",
+            "workspace_name": "${{ secrets.AZURE_WORKSPACE_NAME }}"
+          }' > .azureml/config.json
+
+      - name: Copy config.json into component code directory
+        run: |
+          cp .azureml/config.json components/register/.azureml/config.json
+
       - name: Register/Update components
         run: |
           az ml component create --file components/dataprep/dataprep.yaml --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} --workspace-name ${{ secrets.AZURE_WORKSPACE }}
