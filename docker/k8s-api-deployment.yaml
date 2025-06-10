@@ -16,13 +16,19 @@ spec:
     spec:
       containers:
       - name: housing-api
-        image: housing-api:latest
-        imagePullPolicy: IfNotPresent
+        image: your-registry.com/housing-api:latest
+        imagePullPolicy: Always
         ports:
         - containerPort: 8000
         env:
         - name: MODEL_PATH
           value: "/app/trained_model.h5"
+        - name: MODEL_VERSION
+          valueFrom:
+            configMapKeyRef:
+              name: model-config
+              key: version
+              optional: true
         volumeMounts:
         - name: model-volume
           mountPath: /app/trained_model.h5
@@ -51,7 +57,6 @@ spec:
       - name: model-volume
         configMap:
           name: model-config
-          # Alternative: use persistent volume or secret for model file
 ---
 apiVersion: v1
 kind: Service
