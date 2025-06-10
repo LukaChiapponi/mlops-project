@@ -24,8 +24,10 @@ data:
            
             client_max_body_size 100M;
            
-            # Fixed: Remove trailing slash and use proper proxy_pass
-            location /api {
+            # Fixed: Add path rewriting like in Docker Compose nginx.conf
+            location /api/ {
+                # This strips /api from the path: /api/predict becomes /predict
+                rewrite ^/api/(.*)$ /$1 break;
                 proxy_pass http://api;
                 proxy_set_header Host $host;
                 proxy_set_header X-Real-IP $remote_addr;
@@ -46,6 +48,15 @@ data:
                     add_header 'Content-Length' 0;
                     return 204;
                 }
+            }
+           
+            # Backup direct API route
+            location /predict {
+                proxy_pass http://api/predict;
+                proxy_set_header Host $host;
+                proxy_set_header X-Real-IP $remote_addr;
+                proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+                proxy_set_header X-Forwarded-Proto $scheme;
             }
            
             location / {

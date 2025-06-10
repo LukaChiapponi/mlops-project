@@ -1,21 +1,35 @@
 #!/bin/bash
 
-# Enhanced build-and-deploy.sh for CI/CD
-set -e  # Exit on any error
+# Build and Deploy Housing Price Prediction App
+set -e
+
+echo "🏠 Building Housing Price Prediction Application"
+
+# Check if Kubernetes cluster is available
+if ! kubectl cluster-info > /dev/null 2>&1; then
+    echo "❌ No Kubernetes cluster available. Please start minikube or kind:"
+    echo "   minikube start"
+    echo "   OR"
+    echo "   kind create cluster --name housing-app"
+    exit 1
+fi
+echo "✅ Kubernetes cluster is available"
 
 # Configuration
-REGISTRY=${REGISTRY:-"localhost:5000"}
-TAG=${TAG:-"latest"}
-NAMESPACE=${NAMESPACE:-"housing-app"}
+NAMESPACE="housing-app"
+REGISTRY=""
+TAG="latest"
 
-API_IMAGE="$REGISTRY/housing-api:$TAG"
-FRONTEND_IMAGE="$REGISTRY/housing-frontend:$TAG"
-NGINX_IMAGE="$REGISTRY/housing-nginx:$TAG"
-
-echo "🚀 Starting deployment with:"
-echo "Registry: $REGISTRY"
-echo "Tag: $TAG"
-echo "Namespace: $NAMESPACE"
+# Set image names based on whether registry is provided
+if [ -z "$REGISTRY" ]; then
+    API_IMAGE="housing-api:$TAG"
+    FRONTEND_IMAGE="housing-frontend:$TAG"
+    NGINX_IMAGE="housing-nginx:$TAG"
+else
+    API_IMAGE="$REGISTRY/housing-api:$TAG"
+    FRONTEND_IMAGE="$REGISTRY/housing-frontend:$TAG"
+    NGINX_IMAGE="$REGISTRY/housing-nginx:$TAG"
+fi
 
 # Create namespace if it doesn't exist
 echo "📦 Creating namespace..."
@@ -36,25 +50,24 @@ docker build --no-cache -f Dockerfile.frontend -t $FRONTEND_IMAGE .
 echo "Building NGINX image..."
 docker build --no-cache -f Dockerfile.nginx -t $NGINX_IMAGE .
 
-# Push images to registry (for production)
-if [ "$REGISTRY" != "localhost:5000" ] && [ -n "$GITHUB_ACTIONS" ]; then
-    echo "📤 Pushing images to registry..."
-    docker push $API_IMAGE
-    docker push $FRONTEND_IMAGE
-    docker push $NGINX_IMAGE
-else
-    # For local testing with minikube/kind, load images directly
-    if command -v minikube &> /dev/null && minikube status &> /dev/null; then
-        echo "🚀 Loading images to minikube..."
-        minikube image load $API_IMAGE
-        minikube image load $FRONTEND_IMAGE
-        minikube image load $NGINX_IMAGE
-    elif command -v kind &> /dev/null; then
-        echo "🚀 Loading images to kind..."
-        kind load docker-image $API_IMAGE
-        kind load docker-image $FRONTEND_IMAGE
-        kind load docker-image $NGINX_IMAGE
-    fi
+
+# Push images (uncomment when ready)
+# echo "📤 Pushing images to registry..."
+# docker push $REGISTRY/housing-api:$TAG
+# docker push $REGISTRY/housing-frontend:$TAG  
+# docker push $REGISTRY/housing-nginx:$TAG
+
+# For local testing with minikube/kind, load images directly
+if command -v minikube &> /dev/null; then
+    echo "🚀 Loading images to minikube..."
+    minikube image load $API_IMAGE
+    minikube image load $FRONTEND_IMAGE
+    minikube image load $NGINX_IMAGE
+elif command -v kind &> /dev/null; then
+    echo "🚀 Loading images to kind..."
+    kind load docker-image $API_IMAGE
+    kind load docker-image $FRONTEND_IMAGE
+    kind load docker-image $NGINX_IMAGE
 fi
 
 # Deploy to Kubernetes
@@ -77,22 +90,11 @@ sleep 10
 echo "🔍 Verifying cleanup..."
 kubectl get pvc,jobs -n $NAMESPACE --ignore-not-found=true
 
-# Apply ConfigMaps first
-echo "📝 Applying configurations..."
-kubectl create configmap nginx-config --from-file=nginx.conf -n $NAMESPACE --dry-run=client -o yaml | kubectl apply -f -
-
-if [ -f "k8s-model-configmap.yaml" ]; then
-    kubectl apply -f k8s-model-configmap.yaml -n $NAMESPACE
-fi
-
-# Update deployment files with new image tags
-echo "🏷️  Updating image tags in deployment files..."
-sed -i.bak "s|image: .*housing-api.*|image: $API_IMAGE|g" k8s-api-deployment.yaml
-sed -i.bak "s|image: .*housing-frontend.*|image: $FRONTEND_IMAGE|g" k8s-frontend-deployment.yaml  
-sed -i.bak "s|image: .*housing-nginx.*|image: $NGINX_IMAGE|g" k8s-nginx-deployment.yaml
+# Apply ConfigMaps
+echo "📝 Applying model configuration..."
+kubectl apply -f k8s-model-configmap.yaml -n $NAMESPACE
 
 # Deploy services
-echo "🚀 Deploying services..."
 kubectl apply -f k8s-api-deployment.yaml -n $NAMESPACE
 kubectl apply -f k8s-frontend-deployment.yaml -n $NAMESPACE
 kubectl apply -f k8s-nginx-deployment.yaml -n $NAMESPACE
@@ -104,26 +106,23 @@ kubectl rollout restart deployment/housing-frontend -n $NAMESPACE
 kubectl rollout restart deployment/housing-nginx -n $NAMESPACE
 
 # Wait for rollout to complete
-echo "⏳ Waiting for rollout to complete..."
 kubectl rollout status deployment/housing-api -n $NAMESPACE --timeout=300s
 kubectl rollout status deployment/housing-frontend -n $NAMESPACE --timeout=300s
 kubectl rollout status deployment/housing-nginx -n $NAMESPACE --timeout=300s
 
 # Wait for deployments to be ready
 echo "⏳ Waiting for deployments to be ready..."
-kubectl wait --for=condition=available --timeout=30s deployment/housing-api -n $NAMESPACE
-kubectl wait --for=condition=available --timeout=30s deployment/housing-frontend -n $NAMESPACE
-kubectl wait --for=condition=available --timeout=30s deployment/housing-nginx -n $NAMESPACE
+kubectl wait --for=condition=available --timeout=10s deployment/housing-api -n $NAMESPACE
+kubectl wait --for=condition=available --timeout=10s deployment/housing-frontend -n $NAMESPACE
+kubectl wait --for=condition=available --timeout=10s deployment/housing-nginx -n $NAMESPACE
 
 # Get service information
 echo "🌐 Service information:"
 kubectl get services -n $NAMESPACE
 
-# Clean up backup files
-rm -f k8s-*-deployment.yaml.bak
-
-echo "✅ Deployment complete!"
-echo ""
+# Port forwarding for local access (optional)
 echo "🔗 To access the application locally, run:"
 echo "kubectl port-forward service/housing-nginx-service 8080:80 -n $NAMESPACE"
 echo "Then open http://localhost:8080"
+
+echo "✅ Deployment complete!"
