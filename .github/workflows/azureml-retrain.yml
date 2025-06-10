@@ -37,12 +37,12 @@ jobs:
               "tenant_id": "${{ secrets.AZURE_TENANT_ID }}",
               "client_secret": "${{ secrets.AZURE_CLIENT_SECRET }}"
             }
-          }' > components/register/.azureml/config.json
+          }' > components/register/code/.azureml/config.json
 
 
       - name: Copy config.json into component code directory
         run: |
-          mkdir -p components/register/code/.azureml
+          mkdir -p components/register/code/.azureml/
           cp .azureml/config.json components/register/code/.azureml/config.json
 
       - name: Register/Update components
