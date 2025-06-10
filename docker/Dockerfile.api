@@ -10,7 +10,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY main.py .
 
 # Copy model file
-COPY trained_model.h5 .
+COPY trained_model.h5 /app/trained_model.h5
 
 EXPOSE 8000
 

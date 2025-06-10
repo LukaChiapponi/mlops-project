@@ -2,6 +2,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: nginx-config
+  namespace: housing-app  
 data:
   nginx.conf: |
     events {
@@ -23,17 +24,23 @@ data:
            
             client_max_body_size 100M;
            
-            location /api/ {
-                proxy_pass http://api/;
+            # Fixed: Remove trailing slash and use proper proxy_pass
+            location /api {
+                proxy_pass http://api;
                 proxy_set_header Host $host;
                 proxy_set_header X-Real-IP $remote_addr;
                 proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
                 proxy_set_header X-Forwarded-Proto $scheme;
+                
+                # Add CORS headers for all responses
+                add_header 'Access-Control-Allow-Origin' '*' always;
+                add_header 'Access-Control-Allow-Methods' 'GET, POST, OPTIONS' always;
+                add_header 'Access-Control-Allow-Headers' 'DNT,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Range,Authorization' always;
                
                 if ($request_method = 'OPTIONS') {
                     add_header 'Access-Control-Allow-Origin' '*';
                     add_header 'Access-Control-Allow-Methods' 'GET, POST, OPTIONS';
-                    add_header 'Access-Control-Allow-Headers' 'DNT,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Range';
+                    add_header 'Access-Control-Allow-Headers' 'DNT,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Range,Authorization';
                     add_header 'Access-Control-Max-Age' 1728000;
                     add_header 'Content-Type' 'text/plain; charset=utf-8';
                     add_header 'Content-Length' 0;
@@ -42,7 +49,7 @@ data:
             }
            
             location / {
-                proxy_pass http://frontend/;
+                proxy_pass http://frontend;
                 proxy_set_header Host $host;
                 proxy_set_header X-Real-IP $remote_addr;
                 proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
@@ -51,6 +58,8 @@ data:
            
             location /health {
                 proxy_pass http://api/health;
+                proxy_set_header Host $host;
+                proxy_set_header X-Real-IP $remote_addr;
             }
         }
     }
@@ -59,6 +68,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: housing-nginx
+  namespace: housing-app
   labels:
     app: housing-nginx
 spec:
@@ -108,6 +118,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: housing-nginx-service
+  namespace: housing-app
 spec:
   selector:
     app: housing-nginx
@@ -115,4 +126,4 @@ spec:
   - protocol: TCP
     port: 80
     targetPort: 80
-  type: LoadBalancer  # Use NodePort for local testing
+  type: NodePort
