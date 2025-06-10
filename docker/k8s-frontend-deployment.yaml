@@ -1,67 +1,56 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: housing-api
+  name: housing-frontend
+  namespace: housing-app
   labels:
-    app: housing-api
+    app: housing-frontend
 spec:
   replicas: 2
   selector:
     matchLabels:
-      app: housing-api
+      app: housing-frontend
   template:
     metadata:
       labels:
-        app: housing-api
+        app: housing-frontend
     spec:
       containers:
-      - name: housing-api
-        image: housing-api:latest
+      - name: housing-frontend
+        image: housing-frontend:latest
         imagePullPolicy: IfNotPresent
         ports:
-        - containerPort: 8000
-        env:
-        - name: MODEL_PATH
-          value: "/app/model.pkl"
-        volumeMounts:
-        - name: model-volume
-          mountPath: /app/model.pkl
-          subPath: model.pkl
-          readOnly: true
+        - containerPort: 3000
         resources:
           requests:
-            memory: "256Mi"
-            cpu: "250m"
+            memory: "128Mi"
+            cpu: "100m"
           limits:
-            memory: "512Mi"
-            cpu: "500m"
+            memory: "256Mi"
+            cpu: "200m"
         livenessProbe:
           httpGet:
-            path: /health
-            port: 8000
+            path: /
+            port: 3000
           initialDelaySeconds: 30
           periodSeconds: 10
         readinessProbe:
           httpGet:
-            path: /health
-            port: 8000
+            path: /
+            port: 3000
           initialDelaySeconds: 5
           periodSeconds: 5
-      volumes:
-      - name: model-volume
-        configMap:
-          name: model-config
-          # Alternative: use persistent volume or secret for model file
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: housing-api-service
+  name: housing-frontend-service
+  namespace: housing-app
 spec:
   selector:
-    app: housing-api
+    app: housing-frontend
   ports:
   - protocol: TCP
-    port: 8000
-    targetPort: 8000
+    port: 3000
+    targetPort: 3000
   type: ClusterIP

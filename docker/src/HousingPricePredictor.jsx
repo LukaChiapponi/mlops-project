@@ -33,7 +33,7 @@ const HousingPricePredictor = () => {
     setError(null);
    
     try {
-      const response = await fetch('/predict', {
+      const response = await fetch('/api/predict', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -42,12 +42,22 @@ const HousingPricePredictor = () => {
       });
      
       if (!response.ok) {
-        throw new Error('Failed to get prediction');
+        const errorText = await response.text();
+        console.error('API Error:', response.status, errorText);
+        throw new Error(`API Error: ${response.status} - ${errorText}`);
+      }
+     
+      const contentType = response.headers.get('content-type');
+      if (!contentType || !contentType.includes('application/json')) {
+        const responseText = await response.text();
+        console.error('Non-JSON response:', responseText);
+        throw new Error('API returned non-JSON response');
       }
      
       const result = await response.json();
       setPrediction(result);
     } catch (err) {
+      console.error('Full error:', err);
       setError(err.message);
     } finally {
       setLoading(false);

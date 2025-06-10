@@ -2,6 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: housing-api
+  namespace: housing-app
   labels:
     app: housing-api
 spec:
@@ -16,24 +17,14 @@ spec:
     spec:
       containers:
       - name: housing-api
-        image: your-registry.com/housing-api:latest
-        imagePullPolicy: Always
+        image: housing-api:latest  # Fixed: removed your-registry.com
+        imagePullPolicy: IfNotPresent  # Changed from Always to IfNotPresent for local images
         ports:
         - containerPort: 8000
         env:
         - name: MODEL_PATH
           value: "/app/trained_model.h5"
-        - name: MODEL_VERSION
-          valueFrom:
-            configMapKeyRef:
-              name: model-config
-              key: version
-              optional: true
-        volumeMounts:
-        - name: model-volume
-          mountPath: /app/trained_model.h5
-          subPath: trained_model.h5
-          readOnly: true
+        # Removed ConfigMap reference since it doesn't exist
         resources:
           requests:
             memory: "256Mi"
@@ -53,15 +44,13 @@ spec:
             port: 8000
           initialDelaySeconds: 5
           periodSeconds: 5
-      volumes:
-      - name: model-volume
-        configMap:
-          name: model-config
+      # Removed volumes section since ConfigMap doesn't exist
 ---
 apiVersion: v1
 kind: Service
 metadata:
   name: housing-api-service
+  namespace: housing-app
 spec:
   selector:
     app: housing-api
