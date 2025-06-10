@@ -1,0 +1,30 @@
+stages:
+  - retrain
+
+retrain_model:
+  stage: retrain
+  image: python:3.8
+  script:
+    # Install Azure CLI and ML extension
+    - pip install azure-cli
+    - az extension add -n ml -y
+
+    # Login to Azure
+    - az login --service-principal -u "$AZURE_CLIENT_ID" -p "$AZURE_CLIENT_SECRET" --tenant "$AZURE_TENANT_ID"
+
+    # Register/Update environments
+    - az ml environment create --file environment/dataprep-env.yaml --resource-group $AZURE_RESOURCE_GROUP --workspace-name $AZURE_WORKSPACE
+    - az ml environment create --file environment/tensorflow.yaml --resource-group $AZURE_RESOURCE_GROUP --workspace-name $AZURE_WORKSPACE
+
+    # Register/Update compute (will not fail if already exists)
+    - az ml compute create --file environment/compute.yaml --resource-group $AZURE_RESOURCE_GROUP --workspace-name $AZURE_WORKSPACE || true
+    - az ml compute start --name project-ml-compute --resource-group $AZURE_RESOU_GROUP --workspace-name $AZURE_WORKSPACE || true    
+    # Register/Update components
+    - az ml component create --file components/dataprep/dataprep.yaml --resource-group $AZURE_RESOURCE_GROUP --workspace-name $AZURE_WORKSPACE
+    - az ml component create --file components/training/training.yaml --resource-group $AZURE_RESOURCE_GROUP --workspace-name $AZURE_WORKSPACE
+
+    # Submit pipeline job
+    - az ml job create --file pipelines/pipeline.yaml --resource-group $AZURE_RESOURCE_GROUP --workspace-name $AZURE_WORKSPACE
+
+  only:
+    - main  # Or your default branch
