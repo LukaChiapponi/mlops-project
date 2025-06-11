@@ -64,3 +64,16 @@ jobs:
       - name: Shut down compute cluster
         run: |
           az ml compute update --name project-ml-compute --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} --workspace-name ${{ secrets.AZURE_WORKSPACE }} --min-instances 0
+
+      
+      - name: Submit pipeline job
+        run: |
+          az ml job create --file pipelines/pipeline.yaml --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} --workspace-name ${{ secrets.AZURE_WORKSPACE }}
+      - name: Trigger deployment
+        if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/working-no-api-deploy'
+        run: |
+          minikube start
+          minikube addons enable ingress
+          cd docker
+          chmod +x build-and-deploy.sh
+          ./build-and-deploy.sh        
