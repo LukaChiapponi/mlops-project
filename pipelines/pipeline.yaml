@@ -16,8 +16,7 @@ outputs:
   model_output:
     type: uri_folder
     mode: rw_mount
-  registration_details_folder:
-    mode: rw_mount
+
   data_cleaned:
     type: uri_folder
     mode: rw_mount
