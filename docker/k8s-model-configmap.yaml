@@ -23,7 +23,7 @@ spec:
     spec:
       containers:
       - name: model-loader
-        image: housing-api:latest  # This image should contain your trained_model.h5
+        image: housing-api:latest  
         command: ["/bin/sh"]
         args:
           - -c

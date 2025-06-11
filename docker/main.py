@@ -4,11 +4,9 @@ from pydantic import BaseModel
 import numpy as np
 import logging
 import os
-# Remove joblib import, add tensorflow
 import tensorflow as tf
 from tensorflow.keras.models import load_model
 
-# Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
@@ -18,7 +16,6 @@ app = FastAPI(
     version="1.0.0"
 )
 
-# Add CORS middleware for frontend communication
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -45,7 +42,6 @@ class PredictionResponse(BaseModel):
     formatted_price: str
     features_used: dict
 
-# Global variable to store the model
 model = None
 
 def load_model_func():
@@ -53,13 +49,11 @@ def load_model_func():
     global model
     try:
         model_path = os.getenv("MODEL_PATH", "trained_model.h5")
-        # Load TensorFlow/Keras model instead of joblib
         model = load_model(model_path)
         logger.info(f"TensorFlow model loaded successfully from {model_path}")
         logger.info(f"Model input shape: {model.input_shape}")
     except Exception as e:
         logger.error(f"Failed to load model: {e}")
-        # Create a dummy TensorFlow model for development
         logger.info("Creating dummy TensorFlow model for development...")
         model = tf.keras.Sequential([
             tf.keras.layers.Dense(64, activation='relu', input_shape=(11,)),
@@ -68,7 +62,6 @@ def load_model_func():
         ])
         model.compile(optimizer='adam', loss='mse')
         
-        # Train on dummy data
         X_dummy = np.random.rand(100, 11)
         y_dummy = np.random.rand(100, 1) * 50
         model.fit(X_dummy, y_dummy, epochs=1, verbose=0)
@@ -98,7 +91,6 @@ async def predict_price(request: HousePredictionRequest):
         if model is None:
             raise HTTPException(status_code=503, detail="Model not loaded")
         
-        # Convert to the format expected by TensorFlow model (11 features)
         features = np.array([[
             request.CRIM, request.ZN, request.INDUS, request.CHAS, request.NOX,
             request.RM, request.AGE, request.DIS, request.TAX, request.PTRATIO, request.LSTAT
@@ -106,7 +98,6 @@ async def predict_price(request: HousePredictionRequest):
         
         logger.info(f"Input features shape: {features.shape}")
         
-        # Make prediction using TensorFlow model
         prediction = model.predict(features, verbose=0)[0][0]
         
         return {

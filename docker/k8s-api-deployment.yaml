@@ -17,14 +17,13 @@ spec:
     spec:
       containers:
       - name: housing-api
-        image: housing-api:latest  # Fixed: removed your-registry.com
-        imagePullPolicy: IfNotPresent  # Changed from Always to IfNotPresent for local images
+        image: housing-api:latest  
+        imagePullPolicy: IfNotPresent  
         ports:
         - containerPort: 8000
         env:
         - name: MODEL_PATH
           value: "/app/trained_model.h5"
-        # Removed ConfigMap reference since it doesn't exist
         resources:
           requests:
             memory: "256Mi"
@@ -44,7 +43,6 @@ spec:
             port: 8000
           initialDelaySeconds: 5
           periodSeconds: 5
-      # Removed volumes section since ConfigMap doesn't exist
 ---
 apiVersion: v1
 kind: Service
