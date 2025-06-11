@@ -19,45 +19,15 @@ jobs:
         run: |
           az ml environment create --file environment/dataprep-env.yaml --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} --workspace-name ${{ secrets.AZURE_WORKSPACE }}
           az ml environment create --file environment/tensorflow.yaml --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} --workspace-name ${{ secrets.AZURE_WORKSPACE }}
-          az ml environment create --file environment/register-env.yaml --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} --workspace-name ${{ secrets.AZURE_WORKSPACE }}
 
       - name: Register/Update compute
         run: |
           az ml compute create --file environment/compute.yaml --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} --workspace-name ${{ secrets.AZURE_WORKSPACE }} || true
 
-      - name: Create config.json
-        run: |
-          mkdir -p .azureml
-          echo '${{ secrets.AZURE_CREDENTIALS }}' > tmp_credentials.json
-
-          CLIENT_ID=$(jq -r '.clientId' tmp_credentials.json)
-          TENANT_ID=$(jq -r '.tenantId' tmp_credentials.json)
-          CLIENT_SECRET=$(jq -r '.clientSecret' tmp_credentials.json)
-
-          echo '{
-            "subscription_id": "${{ secrets.AZURE_SUBSCRIPTION_ID }}",
-            "resource_group": "${{ secrets.AZURE_RESOURCE_GROUP }}",
-            "workspace_name": "${{ secrets.AZURE_WORKSPACE }}",
-            "credential": {
-              "client_id": "'$CLIENT_ID'",
-              "tenant_id": "'$TENANT_ID'",
-              "client_secret": "'$CLIENT_SECRET'"
-            }
-          }' > .azureml/config.json
-
-      - name: Copy config.json into component code directory
-        run: |
-          mkdir -p components/register/code/.azureml/
-          cp .azureml/config.json components/register/code/.azureml/config.json
-
-      - name: Debug config.json
-        run: cat .azureml/config.json
-
       - name: Register/Update components
         run: |
           az ml component create --file components/dataprep/dataprep.yaml --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} --workspace-name ${{ secrets.AZURE_WORKSPACE }}
           az ml component create --file components/training/training.yaml --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} --workspace-name ${{ secrets.AZURE_WORKSPACE }}
-          az ml component create --file components/register/register_model.yaml --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} --workspace-name ${{ secrets.AZURE_WORKSPACE }}
       
       - name: Submit pipeline job
         id: submit_job
@@ -75,6 +45,12 @@ jobs:
             fi
             sleep 30
           done
+
+      - name: Download model artifact
+        run: |
+          az ml job download --name ${{ steps.submit_job.outputs.job_id }} --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} --workspace-name ${{ secrets.AZURE_WORKSPACE }} --output-dir ./downloaded_model
+
+
       - name: Shut down compute cluster
         run: |
           az ml compute update --name project-ml-compute --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} --workspace-name ${{ secrets.AZURE_WORKSPACE }} --min-instances 0

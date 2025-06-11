@@ -49,13 +49,3 @@ jobs:
       noise_level: ${{parent.inputs.noise_level}}
     outputs:
       model_output: ${{parent.outputs.model_output}}
-
-  register:
-    type: command
-    component: ../components/register/register_model.yaml
-    compute: azureml:project-ml-compute
-    inputs:
-      model_path: ${{parent.jobs.train.outputs.model_output}}
-    outputs:
-      registration_details_folder: ${{parent.outputs.registration_details_folder}}
-
