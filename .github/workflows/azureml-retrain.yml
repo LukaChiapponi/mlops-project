@@ -37,7 +37,7 @@ jobs:
           echo '{
             "subscription_id": "${{ secrets.AZURE_SUBSCRIPTION_ID }}",
             "resource_group": "${{ secrets.AZURE_RESOURCE_GROUP }}",
-            "workspace_name": "${{ secrets.AZURE_WORKSPACE_NAME }}",
+            "workspace_name": "${{ secrets.AZURE_WORKSPACE }}",
             "credential": {
               "client_id": "'$CLIENT_ID'",
               "tenant_id": "'$TENANT_ID'",
@@ -52,7 +52,7 @@ jobs:
 
       - name: Debug config.json
         run: cat .azureml/config.json
-        
+
       - name: Register/Update components
         run: |
           az ml component create --file components/dataprep/dataprep.yaml --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} --workspace-name ${{ secrets.AZURE_WORKSPACE }}
