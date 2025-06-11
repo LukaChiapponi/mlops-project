@@ -50,6 +50,9 @@ jobs:
           mkdir -p components/register/code/.azureml/
           cp .azureml/config.json components/register/code/.azureml/config.json
 
+      - name: Debug config.json
+        run: cat .azureml/config.json
+        
       - name: Register/Update components
         run: |
           az ml component create --file components/dataprep/dataprep.yaml --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} --workspace-name ${{ secrets.AZURE_WORKSPACE }}
