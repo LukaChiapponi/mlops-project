@@ -59,8 +59,7 @@ def main():
     fit1 = model.fit(X, y, epochs=args.epochs, validation_split=0.2, batch_size=16, callbacks=[early_stopping])
     
     # Save model to output folder
-    model.save(args.output_folder)
-
+    model.save(os.path.join(args.output_folder, "trained_model.h5"))
     # Save scaler to output folder
     import joblib
     scaler_path = os.path.join(args.output_folder, "scaler.pkl")

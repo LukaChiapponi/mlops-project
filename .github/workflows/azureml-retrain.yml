@@ -54,12 +54,17 @@ jobs:
             --workspace-name ${{ secrets.AZURE_WORKSPACE }} \
             --output-name model_output \
             --download-path ./downloaded_model
-            
+
       - name: Upload model artifact
         uses: actions/upload-artifact@v4
         with:
           name: downloaded_model
           path: ./downloaded_model
+          
+      - name: Move trained model to Docker context
+        run: |
+          mkdir -p ./docker/app
+          cp ./downloaded_model/named-outputs/model_output/trained_model.h5 ./docker/app/trained_model.h5
 
       - name: Shut down compute cluster
         run: |
